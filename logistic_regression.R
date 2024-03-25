@@ -80,11 +80,20 @@ fit <- cv.glmnet(x = as.matrix(train_images_flat), y = train_labels_numeric, fam
                  parallel = TRUE, trace.it=1)
 
 
-# Predictions
+# make predictions on test set based on the multinomial logistic regression model 
 predictions <- predict(fit, newx = as.matrix(test_images_flat), s = "lambda.min", type = "class")
-test_labels_factor <- factor(test_labels + 1) # Adjust if necessary
-accuracy <- mean(predictions == test_labels_factor)
-print(paste("Accuracy:", accuracy))
+
+# Convert test_labels to a factor for consistency in comparison
+test_labels_factor <- factor(test_labels + 1) # Adding 1 because R is 1-indexed and class labels start from 1
+
+# Combine predictions and actual labels into a data frame
+results_df <- data.frame(Predicted = predictions, Actual = as.character(test_labels_factor))
+
+class_accuracies <- results_df %>%
+  group_by(Actual) %>%
+  summarise(Accuracy = mean(X1 == Actual, na.rm = TRUE))
+
+print(class_accuracies)
 ###############################GTSRB############################################
 library(imager)
 library(tidyverse)
